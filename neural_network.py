@@ -1,5 +1,5 @@
 import numpy as np
-import scipy.special
+import scipy.special as sp
 
 class neuralNetwork:
 
@@ -13,19 +13,23 @@ class neuralNetwork:
         # NOTE: cannot be a Numpy array (Those do not support jagged arrays natively
         self.layers = layers
 
+        # Enumerate(**) creates an enumerated list of (index, val) tuples up to and including the second to
+        # last value of the list (last value of layers doesn't matter because it is the output, no weight matrix)
+        # Whole list is a list of tuples of (layer_length, nextLayer_length)
         # to help create weight matrices easily
         layer_next = [(layer, self.layers[index + 1]) for index, layer in enumerate(self.layers[:len(self.layers) - 1])]
 
-        # link weight matrix, w_i_j for weight from node i to node j in the next layer
-        # column : element of the previous layer
-        # row : element of the next layer
+        # link weight matrix, w_i_j for weight from node i to node j in the next layer 
+        # row : element of the next layer (i)
+        # column : element of the current layer (j)
         # list of numpy matrices which contain weights, as described above
-        # weights are determined randomly along a normal distribution around 0 and around
+        # weights are determined randomly along a normal distribution around 0 w/ std dev
+        # 1/sqrt(len_column)
         self.weights = [np.random.normal(0.0, pow(l[0], -0.5), (l[1], l[0])) for l in layer_next]
 
         # sets the activation function
         # primarily for testing purposes(we can change this later)
-        self.activation_function = lambda x: scipy.special.expit(x)
+        self.activation_function = lambda x: sp.expit(x)
 
     def query(self, input):
         # runs through the whole matrix and given an input, spits out an output given the current weight matrix
