@@ -19,7 +19,7 @@ class neuralNetwork:
         # to help create weight matrices easily
         layer_next = [(layer, self.layers[index + 1]) for index, layer in enumerate(self.layers[:len(self.layers) - 1])]
 
-        # link weight matrix, w_i_j for weight from node i to node j in the next layer 
+        # link weight matrix, w_i_j for weight from node i to node j in the next layer
         # row : element of the next layer (i)
         # column : element of the current layer (j)
         # list of numpy matrices which contain weights, as described above
