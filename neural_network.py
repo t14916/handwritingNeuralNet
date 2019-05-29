@@ -1,12 +1,15 @@
 import numpy as np
 import scipy.special as sp
 
-class neuralNetwork:
+
+class NeuralNetwork:
 
     def __init__(self, layers,  learning_rate = 0.5):
-        # initializer for neuralNetwork class, requires learning rate and a variable number of layers, which
-        # which are given by list layers for which the length of the list represents the # of layers
-        # and each list represents the layer
+        """"
+        initializer for neuralNetwork class, requires learning rate and a variable number of layers, which
+        which are given by list layers for which the length of the list represents the # of layers
+        and each list represents the layer.
+        """
         self.learning_rate = learning_rate
         # layers is a list of layers, with the first being the input layer and the final being the output layer
         # Each element in layers refers to the number of weights in said layer.
@@ -32,20 +35,22 @@ class neuralNetwork:
         self.activation_function = lambda x: sp.expit(x)
 
     def query(self, input):
-        # runs through the whole matrix and given an input, spits out an output given the current weight matrix
-        # uses query_helper
+        """
+        Runs through the whole matrix and given an input, returns an output given the current weight matrix.
+         Also converts it into a numpy array. Throws an illegal exception if the input is of the incorrect size.
+        """
 
-        layers = self.query_helper(input)
+        if len(input) != self.layers[0]:
+            raise Exception('Input has incorrect size. The size of input was {}, but should be {}.'
+                            .format(len(input), self.layers[0]))
 
-        return layers[-1]
+        prev_layer = np.array(input, ndmin=2).T
 
-    def query_helper(self, input):
-        # runs through the whole matrix and given an input, spits out an output given the current weight matrix
-        # Also converts it into a numpy array
-        prev_layer = np.array(input, ndmin = 2)
-
+        # First list is the input
         layers = [input]
         for layer in self.weights:
+
+            # print(prev_layer)
 
             # multiplies previous layer with the weights to get the next layer
             next_layer = np.dot(layer, prev_layer)
@@ -53,12 +58,13 @@ class neuralNetwork:
             # applies activation function on the next layer
             next_layer = self.activation_function(next_layer)
 
-            # appends the you
+            # appends the next layer
             layers.append(next_layer)
             # sets previous layer as next layer
             prev_layer = next_layer
 
-        return layers
+        # Last list in layers should be the output.
+        return layers[-1]
 
     def train(self, input_list, target_list):
 
