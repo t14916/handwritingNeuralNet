@@ -108,14 +108,19 @@ class NeuralNetwork:
         # Last list in layers should be the output.
         output = layers[-1]
 
+        # Finds the Output error
         output_error = targets - output
 
+        # Backpropogation loop
         for i in range(1, len(self.weights)):
+
+            # if statement sets values for the error of layer
             if i == 1:
                 layer_error = output_error
             else:
                 layer_error = np.dot(self.weights[-i], output_error)
 
+            # Applies backpropogation function to weights matrix
             self.weights[-i] += self.learning_rate * np.dot((layer_error * layers[-i] * (1 - layers[-i])),
                                                             layers[-i - 1].T)
 
