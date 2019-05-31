@@ -116,6 +116,6 @@ class NeuralNetwork:
             else:
                 layer_error = np.dot(self.weights[-i], output_error)
 
-            self.weights[-i] = self.learning_rate * np.dot((layer_error * layers[-i] * (1 - layers[-i])),
-                                                           layers[-i - 1].T)
+            self.weights[-i] += self.learning_rate * np.dot((layer_error * layers[-i] * (1 - layers[-i])),
+                                                            layers[-i - 1].T)
 
