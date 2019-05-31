@@ -37,23 +37,25 @@ class NeuralNetwork:
     def query(self, input):
         """
         Runs through the whole matrix and given an input, returns an output given the current weight matrix.
-         Also converts it into a numpy array. Throws an illegal exception if the input is of the incorrect size.
+        Throws an illegal exception if the input is of the incorrect size.
         """
 
+        # Checks input size
         if len(input) != self.layers[0]:
             raise Exception('Input has incorrect size. The size of input was {}, but should be {}.'
                             .format(len(input), self.layers[0]))
 
+        # converts input to numpy array
         prev_layer = np.array(input, ndmin=2).T
 
         # First list is the input
         layers = [input]
-        for layer in self.weights:
+        for weight_layer in self.weights:
 
             # print(prev_layer)
 
             # multiplies previous layer with the weights to get the next layer
-            next_layer = np.dot(layer, prev_layer)
+            next_layer = np.dot(weight_layer, prev_layer)
 
             # applies activation function on the next layer
             next_layer = self.activation_function(next_layer)
@@ -67,34 +69,53 @@ class NeuralNetwork:
         return layers[-1]
 
     def train(self, input_list, target_list):
+        """
+        Runs through the whole matrix and given an input, and then compares output to target. Then compares output
+        to target_list and backpropogates the error. Throws an illegal exception if the input or target is of the
+        incorrect size.
+        """
+        # Checks input size
+        if len(input_list) != self.layers[0]:
+            raise Exception('Input has incorrect size. The size of input was {}, but should be {}.'
+                            .format(len(input_list), self.layers[0]))
 
-        # need to calculate hidden layer output as well, redo :/
+        # Checks target size
+        if len(target_list) != self.layers[-1]:
+            raise Exception('Input has incorrect size. The size of input was {}, but should be {}.'
+                            .format(len(target_list), self.layers[0]))
 
-        # converts list into a numpy array
-        targets_iterator = iter(target_list)
+        # Converts target to numpy array
+        targets = np.array(target_list, ndmin=2).T
+        # Converts input to numpy array
+        prev_layer = np.array(input_list, ndmin=2).T
 
-        for input in input_list:
-            # finds output using code from query function
+        # converts target to target
+        # First list is the input
+        layers = [input_list]
+        for weight_layer in self.weights:
 
-            layers = self.query_helper(input)
+            # multiplies previous layer with the weights to get the next layer
+            next_layer = np.dot(weight_layer, prev_layer)
 
-            output = layers[-1]
+            # applies activation function on the next layer
+            next_layer = self.activation_function(next_layer)
 
-            # finds the appropriate target list and turns it into a numpy array
-            target = np.array(next(targets_iterator), ndmin=2)
+            # appends the next layer
+            layers.append(next_layer)
+            # sets previous layer as next layer
+            prev_layer = next_layer
 
-            # calculate the final error
-            output_error = target - output
+        # Last list in layers should be the output.
+        output = layers[-1]
 
-            # Back Propogation
-            # Goes through layers in reverse, in order to back propogate
-            # Creates a new numpy array which can be reversed again and then added to self.weights
+        output_error = targets - output
 
-            #index for layer iteration
-            i = 0
+        for i in range(1, len(self.weights)):
+            if i == 1:
+                layer_error = output_error
+            else:
+                layer_error = np.dot(self.weights[-i], output_error)
 
-            for layer in np.fliplr(self.weights):
-
-                layer_error = np.dot(layer, output_error)
-                self.learning_rate*np.dot(output)
+            self.weights[-i] = self.learning_rate * np.dot((layer_error * layers[-i] * (1 - layers[-i])),
+                                                           layers[-i - 1].T)
 
