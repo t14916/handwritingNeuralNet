@@ -1,9 +1,13 @@
 import numpy as np
 import scipy.special as sp
-
+import matplotlib.pyplot as mp
 
 class NeuralNetwork:
 
+    """
+    NOTE: This class, and this project as a whole draws heavily from the book Make Your Own Neural Network by Tariq
+    Rashid, but implements a slightly more complicated neural network which supports more than three layers.
+    """
     def __init__(self, layers,  learning_rate = 0.5):
         """"
         initializer for neuralNetwork class, requires learning rate and a variable number of layers, which
@@ -124,3 +128,43 @@ class NeuralNetwork:
             self.weights[-i] += self.learning_rate * np.dot((layer_error * layers[-i] * (1 - layers[-i])),
                                                             layers[-i - 1].T)
 
+
+def showData():
+    # Opens file of training data and compiles a list of all the training dat
+    data_file = open("mnist_dataset/mnist_train_100.csv", 'r')
+    data_list = data_file.readlines()
+    data_file.close()
+
+    # Splits the long string using commas as the delimiter
+    all_values = data_list[0].split(',')
+
+    # Turns the list of values into a numpy array in the shape of the original image
+    # Note: asfarray turns strings into numbers
+    image_array = np.asfarray(all_values[1:]).reshape((28, 28))
+
+    # Draws the above image array as a
+    mp.imshow(image_array, cmap = 'Greys', interpolation = 'None')
+
+def trainMNISTDataset():
+    # Opens file of training data and compiles a list of all the training dat
+    data_file = open("mnist_dataset/mnist_train_100.csv", 'r')
+    data_list = data_file.readlines()
+    data_file.close()
+
+    # For loop runs through each set of training data
+    for string_data in data_list:
+
+        # Splits the long string using commas as the delimiter
+        numerical_data = string_data.split(',')
+
+        # Scale the input such that it is between 0.01 and 1 (not 0 to avoid 0 value inputs which can be problematic
+        # Note: the data is in the range 0-255 because it is based of pixel data
+        # Note: the first value of the numerical data is not needed because it indicates the correct output value
+        scaled_input = (np.asfarray(numerical_data[1:]) / 255.0 * 0.99) + 0.01
+
+        #print(scaled_input)
+
+        # Generate the correct output, the target vector
+        # Ten possible choices for digits (0-9)
+        target_vec = np.zeros(10) + 0.01
+        target_vec[int(numerical_data[0])] = 0.99
