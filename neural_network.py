@@ -2,6 +2,112 @@ import numpy as np
 import scipy.special as sp
 import matplotlib.pyplot as mp
 
+
+class neuralNetwork:
+
+    # initialise the neural network
+    def __init__(self, inputnodes, hiddennodes, outputnodes, learningrate):
+        # set number of nodes in each input, hidden, output layer
+        self.inodes = inputnodes
+        self.hnodes = hiddennodes
+        self.onodes = outputnodes
+
+        # link weight matrices, wih and who
+        # weights inside the arrays are w_i_j, where link is from node i to node j in the next layer
+        # w11 w21
+        # w12 w22 etc
+        self.wih = np.random.normal(0.0, pow(self.inodes, -0.5), (self.hnodes, self.inodes))
+        self.who = np.random.normal(0.0, pow(self.hnodes, -0.5), (self.onodes, self.hnodes))
+
+        # learning rate
+        self.lr = learningrate
+
+        # activation function is the sigmoid function
+        self.activation_function = lambda x: sp.expit(x)
+        self.inverse_activation_function = lambda x: sp.logit(x)
+
+        pass
+
+    # train the neural network
+    def train(self, inputs_list, targets_list):
+        # convert inputs list to 2d array
+        inputs = np.array(inputs_list, ndmin=2).T
+        targets = np.array(targets_list, ndmin=2).T
+
+        # calculate signals into hidden layer
+        hidden_inputs = np.dot(self.wih, inputs)
+        # calculate the signals emerging from hidden layer
+        hidden_outputs = self.activation_function(hidden_inputs)
+
+        # calculate signals into final output layer
+        final_inputs = np.dot(self.who, hidden_outputs)
+        # calculate the signals emerging from final output layer
+        final_outputs = self.activation_function(final_inputs)
+
+        # output layer error is the (target - actual)
+        output_errors = targets - final_outputs
+        # hidden layer error is the output_errors, split by weights, recombined at hidden nodes
+        hidden_errors = np.dot(self.who.T, output_errors)
+
+        # update the weights for the links between the hidden and output layers
+        self.who += self.lr * np.dot((output_errors * final_outputs * (1.0 - final_outputs)),
+                                        np.transpose(hidden_outputs))
+
+        # update the weights for the links between the input and hidden layers
+        self.wih += self.lr * np.dot((hidden_errors * hidden_outputs * (1.0 - hidden_outputs)),
+                                        np.transpose(inputs))
+
+        pass
+
+    # query the neural network
+    def query(self, inputs_list):
+        # convert inputs list to 2d array
+        inputs = np.array(inputs_list, ndmin=2).T
+
+        # calculate signals into hidden layer
+        hidden_inputs = np.dot(self.wih, inputs)
+        # calculate the signals emerging from hidden layer
+        hidden_outputs = self.activation_function(hidden_inputs)
+
+        # calculate signals into final output layer
+        final_inputs = np.dot(self.who, hidden_outputs)
+        # calculate the signals emerging from final output layer
+        final_outputs = self.activation_function(final_inputs)
+
+        return final_outputs
+
+    # backquery the neural network
+    # we'll use the same termnimology to each item,
+    # eg target are the values at the right of the network, albeit used as input
+    # eg hidden_output is the signal to the right of the middle nodes
+    def backquery(self, targets_list):
+        # transpose the targets list to a vertical array
+        final_outputs = np.array(targets_list, ndmin=2).T
+
+        # calculate the signal into the final output layer
+        final_inputs = self.inverse_activation_function(final_outputs)
+
+        # calculate the signal out of the hidden layer
+        hidden_outputs = np.dot(self.who.T, final_inputs)
+        # scale them back to 0.01 to .99
+        hidden_outputs -= np.min(hidden_outputs)
+        hidden_outputs /= np.max(hidden_outputs)
+        hidden_outputs *= 0.98
+        hidden_outputs += 0.01
+
+        # calculate the signal into the hidden layer
+        hidden_inputs = self.inverse_activation_function(hidden_outputs)
+
+        # calculate the signal out of the input layer
+        inputs = np.dot(self.wih.T, hidden_inputs)
+        # scale them back to 0.01 to .99
+        inputs -= np.min(inputs)
+        inputs /= np.max(inputs)
+        inputs *= 0.98
+        inputs += 0.01
+
+        return inputs
+
 class NeuralNetwork:
 
     """
@@ -17,7 +123,7 @@ class NeuralNetwork:
         self.learning_rate = learning_rate
         # layers is a list of layers, with the first being the input layer and the final being the output layer
         # Each element in layers refers to the number of weights in said layer.
-        # NOTE: cannot be a Numpy array (Those do not support jagged arrays natively
+        # NOTE: cannot be a np array (Those do not support jagged arrays natively
         self.layers = layers
 
         # Enumerate(**) creates an enumerated list of (index, val) tuples up to and including the second to
@@ -29,7 +135,7 @@ class NeuralNetwork:
         # link weight matrix, w_i_j for weight from node i to node j in the next layer
         # row : element of the next layer (i)
         # column : element of the current layer (j)
-        # list of numpy matrices which contain weights, as described above
+        # list of np matrices which contain weights, as described above
         # weights are determined randomly along a normal distribution around 0 w/ std dev
         # 1/sqrt(len_column)
         self.weights = [np.random.normal(0.0, pow(l[0], -0.5), (l[1], l[0])) for l in layer_next]
@@ -49,7 +155,7 @@ class NeuralNetwork:
             raise Exception('Input has incorrect size. The size of input was {}, but should be {}.'
                             .format(len(input), self.layers[0]))
 
-        # converts input to numpy array
+        # converts input to np array
         prev_layer = np.array(input, ndmin=2).T
 
         # First list is the input
@@ -88,9 +194,9 @@ class NeuralNetwork:
             raise Exception('Input has incorrect size. The size of input was {}, but should be {}.'
                             .format(len(target_list), self.layers[0]))
 
-        # Converts target to numpy array
+        # Converts target to np array
         targets = np.array(target_list, ndmin=2).T
-        # Converts input to numpy array
+        # Converts input to np array
         prev_layer = np.array(input_list, ndmin=2).T
 
         # converts target to target
@@ -122,12 +228,11 @@ class NeuralNetwork:
             if i == 1:
                 layer_error = output_error
             else:
-                layer_error = np.dot(self.weights[-i], output_error)
+                layer_error = np.dot(self.weights[-i + 1].T, output_error)
 
             # Applies backpropogation function to weights matrix
             self.weights[-i] += self.learning_rate * np.dot((layer_error * layers[-i] * (1 - layers[-i])),
                                                             layers[-i - 1].T)
-
 
 def showData():
     # Opens file of training data and compiles a list of all the training dat
@@ -138,33 +243,75 @@ def showData():
     # Splits the long string using commas as the delimiter
     all_values = data_list[0].split(',')
 
-    # Turns the list of values into a numpy array in the shape of the original image
+    # Turns the list of values into a np array in the shape of the original image
     # Note: asfarray turns strings into numbers
     image_array = np.asfarray(all_values[1:]).reshape((28, 28))
 
     # Draws the above image array as a
     mp.imshow(image_array, cmap = 'Greys', interpolation = 'None')
 
-def trainMNISTDataset():
+
+def trainAndTestMNISTDataset(epochs):
     # Opens file of training data and compiles a list of all the training dat
-    data_file = open("mnist_dataset/mnist_train_100.csv", 'r')
+    data_file = open("mnist_dataset/mnist_train.csv", 'r')
     data_list = data_file.readlines()
     data_file.close()
 
+    # Initializes a neural network with 784 input nodes (for each of the pixels in the image) and 10 ending nodes
+    # (one for each of the possibilities 0-9 for the handwritten letters)
+    nn = NeuralNetwork([784, 100, 10], 0.2)
+    n = neuralNetwork(784, 100, 10, 0.2)
+    count = 0
     # For loop runs through each set of training data
-    for string_data in data_list:
+    for _ in range(epochs):
+        for string_data in data_list:
 
-        # Splits the long string using commas as the delimiter
-        numerical_data = string_data.split(',')
+            # Splits the long string using commas as the delimiter
+            numerical_data = string_data.split(',')
 
-        # Scale the input such that it is between 0.01 and 1 (not 0 to avoid 0 value inputs which can be problematic
-        # Note: the data is in the range 0-255 because it is based of pixel data
-        # Note: the first value of the numerical data is not needed because it indicates the correct output value
-        scaled_input = (np.asfarray(numerical_data[1:]) / 255.0 * 0.99) + 0.01
+            # Scale the input such that it is between 0.01 and 1 (not 0 to avoid 0 value inputs which can be problematic
+            # Note: the data is in the range 0-255 because it is based of pixel data
+            # Note: the first value of the numerical data is not needed because it indicates the correct output value
+            scaled_input = (np.asfarray(numerical_data[1:]) / 255.0 * 0.99) + 0.01
 
-        #print(scaled_input)
+            #print(scaled_input)
 
-        # Generate the correct output, the target vector
-        # Ten possible choices for digits (0-9)
-        target_vec = np.zeros(10) + 0.01
-        target_vec[int(numerical_data[0])] = 0.99
+            # Generate the correct output, the target vector
+            # Ten possible choices for digits (0-9)
+            target_vec = np.zeros(10) + 0.01
+            target_vec[int(numerical_data[0])] = 0.99
+
+            # Train the Neural Network
+            n.train(scaled_input, target_vec)
+            nn.train(scaled_input, target_vec)
+
+    print(n.wih)
+    print(nn.weights)
+    # Load the test data
+    test_data_file = open("mnist_dataset/mnist_test.csv", 'r')
+    test_data_list = test_data_file.readlines()
+    test_data_file.close()
+
+    for test_string_data in test_data_list:
+        test_data = test_string_data.split(',')
+
+        scaled_input = (np.asfarray(test_data[1:]) / 255.0 * 0.99) + 0.01
+        correct_result = int(test_data[0])
+
+        n_output = n.query(scaled_input)
+
+        max_index = n_output.argmax()
+
+        if max_index == correct_result:
+            count += 1
+
+        # print(max_index == correct_result)
+        # print(max_index)
+        # print(correct_result)
+        # print(n_output)
+
+    print(count / 10000)
+
+
+trainAndTestMNISTDataset(1)
+#showData()
