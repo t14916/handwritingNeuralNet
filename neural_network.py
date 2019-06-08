@@ -120,6 +120,7 @@ class NeuralNetwork:
         which are given by list layers for which the length of the list represents the # of layers
         and each list represents the layer.
         """
+
         self.learning_rate = learning_rate
         # layers is a list of layers, with the first being the input layer and the final being the output layer
         # Each element in layers refers to the number of weights in said layer.
@@ -184,6 +185,7 @@ class NeuralNetwork:
         to target_list and backpropogates the error. Throws an illegal exception if the input or target is of the
         incorrect size.
         """
+
         # Checks input size
         if len(input_list) != self.layers[0]:
             raise Exception('Input has incorrect size. The size of input was {}, but should be {}.'
@@ -285,8 +287,9 @@ def trainAndTestMNISTDataset(epochs):
             n.train(scaled_input, target_vec)
             nn.train(scaled_input, target_vec)
 
-    print(n.wih)
-    print(nn.weights)
+    # print(n.wih)
+    # print(nn.weights)
+
     # Load the test data
     test_data_file = open("mnist_dataset/mnist_test.csv", 'r')
     test_data_list = test_data_file.readlines()
@@ -313,5 +316,5 @@ def trainAndTestMNISTDataset(epochs):
     print(count / 10000)
 
 
-trainAndTestMNISTDataset(1)
-#showData()
+#trainAndTestMNISTDataset(1)
+showData()
