@@ -223,22 +223,24 @@ class NeuralNetwork:
         # Finds the Output error
         output_error = targets - output
 
+        # loop to create a list of numpy arrays of errors in reverse order (i.e. output error is first error)
+        error_array = []
+        for i in range(1, len(self.weights)):
+            if i == 1:
+                # first error is output error
+                error_array += [output_error]
+            else:
+                error_array += [np.dot(self.weights[-i + 1].T, output_error)]
+
         # Backpropogation loop
         for i in range(1, len(self.weights)):
-
-            # if statement sets values for the error of layer
-            if i == 1:
-                layer_error = output_error
-            else:
-                layer_error = np.dot(self.weights[-i + 1].T, output_error)
-
             # Applies backpropogation function to weights matrix
-            self.weights[-i] += self.learning_rate * np.dot((layer_error * layers[-i] * (1 - layers[-i])),
+            self.weights[-i] += self.learning_rate * np.dot((error_array[i - 1] * layers[-i] * (1 - layers[-i])),
                                                             layers[-i - 1].T)
 
 def showData():
     # Opens file of training data and compiles a list of all the training dat
-    data_file = open("mnist_dataset/mnist_train_100.csv", 'r')
+    data_file = open("mnist_dataset/mnist_train.csv", 'r')
     data_list = data_file.readlines()
     data_file.close()
 
@@ -316,5 +318,5 @@ def trainAndTestMNISTDataset(epochs):
     print(count / 10000)
 
 
-#trainAndTestMNISTDataset(1)
-showData()
+trainAndTestMNISTDataset(1)
+#showData()
