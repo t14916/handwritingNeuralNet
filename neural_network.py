@@ -235,7 +235,7 @@ class NeuralNetwork:
         # Backpropogation loop
         for i in range(1, len(self.weights)):
             # Applies backpropogation function to weights matrix
-            self.weights[-i] += self.learning_rate * np.dot((error_array[i - 1] * layers[-i] * (1 - layers[-i])),
+            self.weights[-i] += self.learning_rate * np.dot((error_array[i - 1] * layers[-i] * (1.0 - layers[-i])),
                                                             layers[-i - 1].T)
 
 def showData():
@@ -264,7 +264,6 @@ def trainAndTestMNISTDataset(epochs):
     # Initializes a neural network with 784 input nodes (for each of the pixels in the image) and 10 ending nodes
     # (one for each of the possibilities 0-9 for the handwritten letters)
     nn = NeuralNetwork([784, 100, 10], 0.2)
-    n = neuralNetwork(784, 100, 10, 0.2)
     count = 0
     # For loop runs through each set of training data
     for _ in range(epochs):
@@ -286,7 +285,6 @@ def trainAndTestMNISTDataset(epochs):
             target_vec[int(numerical_data[0])] = 0.99
 
             # Train the Neural Network
-            n.train(scaled_input, target_vec)
             nn.train(scaled_input, target_vec)
 
     # print(n.wih)
@@ -303,7 +301,7 @@ def trainAndTestMNISTDataset(epochs):
         scaled_input = (np.asfarray(test_data[1:]) / 255.0 * 0.99) + 0.01
         correct_result = int(test_data[0])
 
-        n_output = n.query(scaled_input)
+        n_output = nn.query(scaled_input)
 
         max_index = n_output.argmax()
 
