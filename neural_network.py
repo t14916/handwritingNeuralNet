@@ -203,7 +203,7 @@ class NeuralNetwork:
 
         # converts target to target
         # First list is the input
-        layers = [input_list]
+        layers = [np.array([input_list])]
         for weight_layer in self.weights:
 
             # multiplies previous layer with the weights to get the next layer
@@ -225,19 +225,30 @@ class NeuralNetwork:
 
         # loop to create a list of numpy arrays of errors in reverse order (i.e. output error is first error)
         error_array = []
-        for i in range(1, len(self.weights)):
+        for i in range(0, len(self.weights)):
             if i == 1:
                 # first error is output error
                 error_array += [output_error]
             else:
+                # print(error_array)
                 error_array += [np.dot(self.weights[-i + 1].T, output_error)]
-
+        #print(len(error_array))
         # Backpropogation loop
-        for i in range(1, len(self.weights)):
-            # Applies backpropogation function to weights matrix
-            self.weights[-i] += self.learning_rate * np.dot((error_array[i - 1] * layers[-i] * (1.0 - layers[-i])),
-                                                            layers[-i - 1].T)
+        weights_len = len(self.weights)
 
+        b = np.dot((error_array[1] * layers[2] * (1.0 - layers[2])), np.transpose(layers[1]))
+        self.weights[1] += self.learning_rate * b
+        b = np.dot((error_array[0] * layers[1] * (1.0 - layers[1])), layers[0])
+        self.weights[0] += self.learning_rate * b
+        #print(1)
+        # for i in range(0, weights_len):
+        #     # Applies backpropogation function to weights matrix
+        #     #print(len(error_array[-i - 1]))
+        #     #print(len(layers[-i - 1]))
+        #     a = error_array[i - 1] * layers[-i - 1] * (1.0 - layers[-i - 1])
+        #     prop_dot_product = np.dot((error_array[i - 1] * layers[-i - 1] * (1.0 - layers[-i - 1])), np.transpose(layers[i]))
+        #     self.weights[-i - 1] += self.learning_rate * prop_dot_product
+        #     print(1)
 def showData():
     # Opens file of training data and compiles a list of all the training dat
     data_file = open("mnist_dataset/mnist_train.csv", 'r')
