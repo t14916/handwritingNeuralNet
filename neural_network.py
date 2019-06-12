@@ -317,6 +317,5 @@ def trainAndTestMNISTDataset(epochs):
 
     print(count / 10000)
 
-
 trainAndTestMNISTDataset(1)
 #showData()
